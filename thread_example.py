@@ -19,7 +19,6 @@ def get_all_weathers():
     for city in CITIES:
         get_weather_by_city(city)
     print(f"Done for {time.time() - start} seconds")
-    # result was 1.02120041847229
 
 def get_all_weathers_with_threads():
     start = time.time()
@@ -29,7 +28,6 @@ def get_all_weathers_with_threads():
         if active_count() == 1:
             break
     print(f"With threading done for {time.time() - start} seconds")
-    # With threading done for 0.5335173606872559
 
 def main():
     print("[+] Run get_all_weathers")
