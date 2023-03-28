@@ -4,6 +4,10 @@ import time
 from threading import Thread
 from threading import active_count
 from threading import Lock
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import as_completed
+
+#################### example 1 ####################
 
 API_KEY = 	"122062fb6e9defff7091be745f70d1df"
 WEATHER_URL = "http://api.openweathermap.org/data/2.5/weather?"
@@ -20,7 +24,7 @@ def get_all_weathers():
     start = time.time()
     for city in CITIES:
         get_weather_by_city(city)
-    print(f"Done for {time.time() - start} seconds")
+    print(f"[+] Done for {time.time() - start} seconds")
 
 def get_all_weathers_with_threads():
     start = time.time()
@@ -29,13 +33,18 @@ def get_all_weathers_with_threads():
     while True:
         if active_count() == 1:
             break
-    print(f"With threading done for {time.time() - start} seconds")
+    print(f"[+] With threading done for {time.time() - start} seconds")
 
 def example_1():
     print("[+] Run get_all_weathers")
     get_all_weathers()
     print("[+] Run get_all_weathers_with_threads")
     get_all_weathers_with_threads()
+
+#[+] Run get_all_weathers
+#[+] Done for 1.4126338958740234 seconds
+#[+] Run get_all_weathers_with_threads
+#[+] With threading done for 0.2989945411682129 seconds
 
 #################### example 2 ####################
 
@@ -77,6 +86,30 @@ def example_2():
             else:
                 print(f"[+] {arr[i]} is still running")
                 time.sleep(1)
+    for th in arr:
+        th.join()
+
+#[+] Start 1 thread. Sleep 20 sec
+#[+] Start 2 thread. Sleep 5 sec
+#[+] Start 3 thread. Sleep 3 sec
+#[+] <Thread(Thread-1, started 20612)> is still running
+#[+] <Thread(Thread-2, started 9696)> is still running
+#[+] <Thread(Thread-3, started 35088)> is still running
+#[+] End 3 thread.
+#[+] <Thread(Thread-1, started 20612)> is still running
+#[+] <Thread(Thread-2, started 9696)> is still running
+#[+] End 2 thread.
+#[+] Start 4 thread. Sleep 3 sec
+#[+] <Thread(Thread-1, started 20612)> is still running
+#[+] Start 5 thread. Sleep 5 sec
+#[+] <Thread(Thread-4, started 35796)> is still running
+#[+] <Thread(Thread-1, started 20612)> is still running
+#[+] End 4 thread.
+#[+] <Thread(Thread-5, started 20068)> is still running
+#[+] Start 6 thread. Sleep 3 sec
+#[+] End 5 thread.
+#[+] End 6 thread.
+#[+] End 1 thread.
 
 #################### example 3 ####################
 
@@ -106,43 +139,6 @@ def example_3():
         t.join()
     print("[+] Counter value:", counter)
 
-
-
-if __name__=="__main__":
-    #example_1()
-    example_2()
-    #example_3()
-
-#################### Prints example 1 ####################
-#[+] Run get_all_weathers
-#Done for 1.4126338958740234 seconds
-#[+] Run get_all_weathers_with_threads
-#With threading done for 0.2989945411682129 seconds
-
-#################### Prints example 2 ####################
-#[+] Start 1 thread. Sleep 20 sec
-#[+] Start 2 thread. Sleep 5 sec
-#[+] Start 3 thread. Sleep 3 sec
-#[+] <Thread(Thread-1, started 20612)> is still running
-#[+] <Thread(Thread-2, started 9696)> is still running
-#[+] <Thread(Thread-3, started 35088)> is still running
-#[+] End 3 thread.
-#[+] <Thread(Thread-1, started 20612)> is still running
-#[+] <Thread(Thread-2, started 9696)> is still running
-#[+] End 2 thread.
-#[+] Start 4 thread. Sleep 3 sec
-#[+] <Thread(Thread-1, started 20612)> is still running
-#[+] Start 5 thread. Sleep 5 sec
-#[+] <Thread(Thread-4, started 35796)> is still running
-#[+] <Thread(Thread-1, started 20612)> is still running
-#[+] End 4 thread.
-#[+] <Thread(Thread-5, started 20068)> is still running
-#[+] Start 6 thread. Sleep 3 sec
-#[+] End 5 thread.
-#[+] End 6 thread.
-#[+] End 1 thread.
-
-#################### Prints example 3 ####################
 #[+] Thread num.1 start with counter = 0. Thread num.1 end with counter = 10000
 #[+] Thread num.2 start with counter = 10000. Thread num.2 end with counter = 20000
 #[+] Thread num.3 start with counter = 20000. Thread num.3 end with counter = 30000
@@ -154,3 +150,47 @@ if __name__=="__main__":
 #[+] Thread num.9 start with counter = 80000. Thread num.9 end with counter = 90000
 #[+] Thread num.10 start with counter = 90000. Thread num.10 end with counter = 100000
 #[+] Counter value: 100000
+
+#################### example 4 ####################
+
+def add(x, y, ind):
+    return x + y, ind
+
+def subtract(x, y, ind):
+    return x - y, ind
+
+def multiply(x, y, ind):
+    return x * y, ind
+
+def divide(x, y, ind):
+    return x / y, ind
+
+operations = [
+    (add, 2, 3, 1),
+    (subtract, 10, 5, 2),
+    (multiply, 4, 6, 3),
+    (divide, 20, 4, 4),
+    (add, 8, 9, 5),
+    (multiply, 3, 7, 6)
+]
+
+def example_4():
+    with ThreadPoolExecutor(max_workers=3) as executor:
+        results = [executor.submit(op[0], op[1], op[2], op[3]) for op in operations]
+
+    for future in as_completed(results):
+        result = future.result()
+        print(f"[+] Result of future num.{result[1]} = {result[0]}")
+
+#[+] Result of future num.6 = 21
+#[+] Result of future num.5 = 17
+#[+] Result of future num.1 = 5
+#[+] Result of future num.2 = 5
+#[+] Result of future num.4 = 5.0
+#[+] Result of future num.3 = 24
+
+if __name__=="__main__":
+    #example_1()
+    #example_2()
+    #example_3()
+    example_4()
