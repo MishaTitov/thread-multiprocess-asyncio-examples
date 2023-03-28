@@ -1,6 +1,6 @@
 # thread-multiprocess-asyncio-examples
 ## Threading
-Some info from ChatGPT<br />
+Some info from ChatGPT:<br />
 Threading in Python, like any other form of concurrency, has both pros and cons. Here are some potential advantages and disadvantages of using threads:
 
 Pros:
